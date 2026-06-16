@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import re
 from pathlib import Path
 
 
@@ -214,9 +215,11 @@ def build_injection_block(image_data_url: str) -> str:
 
 
 def inject_before_body_end(html_text: str, injection_block: str) -> str:
-    body_close_index = html_text.lower().rfind("</body>")
-    if body_close_index == -1:
+    body_matches = list(re.finditer(r"</body\s*>", html_text, flags=re.IGNORECASE))
+    if not body_matches:
         return html_text + "\n" + injection_block + "\n"
+
+    body_close_index = body_matches[-1].start()
 
     return (
         html_text[:body_close_index]
